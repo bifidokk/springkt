@@ -9,4 +9,3 @@ class SpringktApplication
 fun main(args: Array<String>) {
     runApplication<SpringktApplication>(*args)
 }
-

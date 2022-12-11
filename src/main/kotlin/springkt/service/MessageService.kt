@@ -1,18 +1,27 @@
 package springkt.service
 
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.query
 import org.springframework.stereotype.Service
-import springkt.repository.MessageRepository
+import java.util.UUID
 
 @Service
 class MessageService(
-    val messageRepository: MessageRepository
+    val db: JdbcTemplate
 ) {
-
     fun findMessages(): List<Message> {
-        return messageRepository.findMessages()
+        return db.query("select * from messages") { rs, _ ->
+            Message(rs.getString("id"), rs.getString("text"))
+        }
+    }
+
+    fun findMessageById(id: String): List<Message> {
+        return db.query("select * from messages where id = ?", id) { rs, _ ->
+            Message(rs.getString("id"), rs.getString("text"))
+        }
     }
 
     fun create(message: Message) {
-        messageRepository.save(message)
+        db.update("insert into messages values (?, ?)", message.id ?: UUID.randomUUID(), message.text)
     }
 }
