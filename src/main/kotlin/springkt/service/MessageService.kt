@@ -15,10 +15,10 @@ class MessageService(
         }
     }
 
-    fun findMessageById(id: String): List<Message> {
+    fun findMessageById(id: String): Message? {
         return db.query("select * from messages where id = ?", id) { rs, _ ->
             Message(rs.getString("id"), rs.getString("text"))
-        }
+        }.firstOrNull()
     }
 
     fun create(message: Message) {
