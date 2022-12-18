@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+
+      - name: Gradle compile and test
+        run: ./gradlew clean test
+
+      - name: Archive test results report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: tests-report
+          path: /home/runner/work/springkt/springkt/build/reports/tests
+
