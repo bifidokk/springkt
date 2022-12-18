@@ -1,6 +1,7 @@
 package springkt
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -9,16 +10,46 @@ import org.springframework.boot.test.web.client.getForEntity
 import org.springframework.boot.test.web.client.getForObject
 import org.springframework.boot.test.web.client.postForObject
 import org.springframework.http.HttpStatus
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import springkt.service.Message
 import java.util.*
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = [
-        "spring.datasource.url=jdbc:h2:mem:testdb"
-    ]
 )
-class SpringktApplicationTests(@Autowired val client: TestRestTemplate) {
+
+@Testcontainers
+class SpringktApplicationTests(
+    @Autowired val client: TestRestTemplate,
+    @Autowired val jdbcTemplate: JdbcTemplate,
+) {
+    companion object {
+        @Container
+        val container = postgres("postgres:13-alpine") {
+            withDatabaseName("db")
+            withUsername("user")
+            withPassword("password")
+            withInitScript("sql/schema.sql")
+        }
+
+        @JvmStatic
+        @DynamicPropertySource
+        fun dataSourceConfig(registry: DynamicPropertyRegistry) {
+            registry.add("spring.datasource.url", container::getJdbcUrl)
+            registry.add("spring.datasource.password", container::getPassword)
+            registry.add("spring.datasource.username", container::getUsername)
+        }
+    }
+
+    @AfterEach
+    fun cleanup() {
+        jdbcTemplate.execute("truncate table messages")
+    }
+
 
     @Test
     fun `test hello endpoint`() {

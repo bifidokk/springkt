@@ -1,4 +1,7 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS messages (
-    id VARCHAR(60) DEFAULT RANDOM_UUID() PRIMARY KEY,
-    text VARCHAR NOT NULL
+    id VARCHAR(50) DEFAULT uuid_generate_v4()::text,
+    text VARCHAR(500),
+    CONSTRAINT id_messages PRIMARY KEY (id)
 );
